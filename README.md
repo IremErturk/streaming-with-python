@@ -11,7 +11,7 @@ to run Kafka and Spark in a docker container. Setting up required services is
 the prerequsite step for running following modules.
 
 #### 2. Kafka Producer - Consumer Examples
-- [Json Producer-Consumer Example](src/simple_example_json) using `kafka-python` library
+- [Json Producer-Consumer Example](src/object_example) using `kafka-python` library
 - [Avro Producer-Consumer Example](src/avro_example) using `confluent-kafka` library
 
 Both of these examples require, up-and running Kafka services, therefore please ensure
