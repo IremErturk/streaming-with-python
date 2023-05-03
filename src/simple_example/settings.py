@@ -1,16 +1,14 @@
-BOOTSTRAP_SERVERS = ['localhost:9092']
+def read_ccloud_config(config_file):
+    conf = {}
+    with open(config_file) as fh:
+        for line in fh:
+            line = line.strip()
+            if len(line) != 0 and line[0] != "#":
+                parameter, value = line.strip().split('=', 1)
+                conf[parameter] = value.strip()
+    return conf
 
-TOPIC = 'rides_csv'
-PRODUCER_CONFIG = {
-    'bootstrap_servers': BOOTSTRAP_SERVERS,
-    'key_serializer': lambda key: key.encode('utf-8'),
-    'value_serializer': lambda value: value.encode('utf-8')
-}
-CONSUMER_CONFIG = {
-    'bootstrap_servers': BOOTSTRAP_SERVERS,
-    'auto_offset_reset': 'earliest',
-    'enable_auto_commit': True,
-    'key_deserializer': lambda key: int(key.decode('utf-8')),
-    'value_deserializer': lambda value: value.decode('utf-8'),
-    'group_id': 'consumer.group.id.csv-example',
-}
+TOPIC = 'nyc_rides'
+CLIENT_PROPERTIES_FILE_PATH = 'resources/client.properties'
+
+CONFLUENT_CLOUD_CONFIG = read_ccloud_config(CLIENT_PROPERTIES_FILE_PATH)

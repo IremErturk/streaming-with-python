@@ -1,32 +1,35 @@
-import argparse
 from typing import Dict, List
-from kafka import KafkaConsumer
+from confluent_kafka import Consumer
 
-from settings import CONSUMER_CONFIG, TOPIC
+from settings import CONFLUENT_CLOUD_CONFIG, TOPIC
 
 
 class SimpleConsumer:
     def __init__(self, props: Dict):
-        self.consumer = KafkaConsumer(**props)
+        self.consumer = Consumer(**props)
 
     def consume_from_topics(self, topics: List[str]):
-        self.consumer.subscribe(topics)
-        print('Consuming from Kafka started')
-        print('Available topics to consume: ', self.consumer.subscription())
+        self.consumer.subscribe(topics=topics)
         while True:
             try:
                 # SIGINT can't be handled when polling, limit timeout to 1 second.
-                state = self.consumer.poll(1.0)  # dict{topic1 = [()], topic2=[(),]}
-                if state is None or state == {}:
+                msg = self.consumer.poll(1.0)
+                if msg is None:
                     continue
-                for topic, records in state.items():
-                    for record in records:
-                        print(f'Key: {record.key} || Value:{record.value} || {topic}')
+                if msg.key() is not None:
+                    print("Key:{}, Value:{}".format(msg.key(), msg.value()))
             except KeyboardInterrupt:
                 break
         self.consumer.close()
 
 
 if __name__ == '__main__':
-    simple_consumer = SimpleConsumer(props=CONSUMER_CONFIG)
+
+    consumer_characteristics = {
+        'group.id': 'taxirides.csv.consumer',
+        'auto.offset.reset': "earliest"
+    }
+    props = {**CONFLUENT_CLOUD_CONFIG, **consumer_characteristics}
+
+    simple_consumer = SimpleConsumer(props=props)
     simple_consumer.consume_from_topics(topics=[TOPIC])

@@ -1,27 +1,35 @@
 from typing import List, Dict
-from kafka import KafkaProducer
-from kafka.errors import KafkaTimeoutError
+from time import sleep
+from confluent_kafka import Producer
 
-from settings import PRODUCER_CONFIG, TOPIC
-from utils import read_csv
+from settings import CONFLUENT_CLOUD_CONFIG, TOPIC
+from utils import read_csv, delivery_report
 
-
-class SimpleProducer(KafkaProducer):
+class SimpleProducer(Producer):
     def __init__(self, props: Dict):
-        self.kafka_producer = KafkaProducer(**props)
+        self.producer = Producer(**props)
+    @staticmethod
+    def parse_message(message:str):
+        key, value  = message.split(', ')[0], message
+        return key, value
 
     def publish_messages(self, topic: str, messages: List[str]):
         for message in messages:
             try:
-                record = self.kafka_producer.send(key=message[0], value=message, topic=topic)
-                print('Record:{} successfully produced at offset:{}' \
-                      .format(message, record.get().offset))
-            except KafkaTimeoutError as e:
-                print(e.__str__())
+                msg_key, msg_value = self.parse_message(message)
+                self.producer.produce(key=msg_key, value=msg_value, topic=topic, on_delivery=delivery_report)
+            except BufferError as bfer:
+                self.producer.poll(0.1) # Polls the producer for events and calls the corresponding callbacks (if registered).
+            except Exception as e:
+                print(f"Exception while producing message - {message}: {e}")
+            except KeyboardInterrupt:
+                break
+        self.producer.flush() # Wait for all messages in the Producer queue to be delivered
+        sleep(10)
 
 
 if __name__ == '__main__':
     rides = read_csv()
 
-    producer = SimpleProducer(props=PRODUCER_CONFIG)
+    producer = SimpleProducer(props=CONFLUENT_CLOUD_CONFIG)
     producer.publish_messages(topic=TOPIC, messages=rides)
