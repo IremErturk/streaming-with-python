@@ -4,4 +4,4 @@ requests
 avro
 fastavro
 kafka-python==1.4.6
-pyspark
+pyspark==3.3.1
