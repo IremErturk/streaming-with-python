@@ -5,19 +5,15 @@ from datetime import datetime
 import fastavro
 
 
-def encode_datetime_as_string(data, *args):
-    return data.strftime("%Y-%m-%d %H:%M:%S")
+def encode_datetime_as_string(date_time:datetime, *args):
+    return date_time.strftime("%Y-%m-%d %H:%M:%S")
 
+def decode_string_as_datetime(date_time_str, *args):
+    return datetime.strptime(date_time_str, "%Y-%m-%d %H:%M:%S")
 
-def decode_string_as_datetime(data, *args):
-    return datetime.strptime(data, "%Y-%m-%d %H:%M:%S"),
-
-
-fastavro.write.LOGICAL_WRITERS["string-customdatetime"] = encode_datetime_as_string
 fastavro.read.LOGICAL_READERS["string-customdatetime"] = decode_string_as_datetime
+fastavro.write.LOGICAL_WRITERS["string-customdatetime"] = encode_datetime_as_string
 
-
-# ["null", {"type": "string", "logicalType": "datetime2",},]
 class Ride:
     def __init__(self, arr: List[str]):
         self.vendor_id = int(arr[0])

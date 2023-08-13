@@ -6,6 +6,15 @@ from ride import Ride
 
 INPUT_DATA_PATH = './resources/data/rides.csv'
 
+def read_ccloud_config(config_file):
+    conf = {}
+    with open(config_file) as fh:
+        for line in fh:
+            line = line.strip()
+            if len(line) != 0 and line[0] != "#":
+                parameter, value = line.strip().split('=', 1)
+                conf[parameter] = value.strip()
+    return conf
 
 def read_rides(resource_path: str = INPUT_DATA_PATH) -> List[Ride]:
     rides = []
@@ -29,4 +38,4 @@ def delivery_report(err, msg):
         print("Delivery failed for record {}: {}".format(msg.key(), err))
         return
     print('Record:{} successfully produced to topic:{} partition:[{}] at offset:{}'.format(
-        msg.key(), msg.topic(), msg.partition(), msg.offset()))
+        msg.value(), msg.topic(), msg.partition(), msg.offset()))

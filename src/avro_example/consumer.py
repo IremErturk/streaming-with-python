@@ -15,17 +15,16 @@ class RideAvroConsumer:
 
         # Schemas & Schema Registry Configuration
         value_schema_str = load_schema(props['schema.value'])
-        schema_registry_props = {'url': props['schema_registry.url']}
-        schema_registry_client = SchemaRegistryClient(schema_registry_props)
+        schema_registry_client = SchemaRegistryClient(props["schema_registry_props"])
         # Deserializers
         self.avro_key_deserializer = IntegerDeserializer()
         self.avro_value_deserializer = AvroDeserializer(schema_registry_client=schema_registry_client,
                                                         schema_str=value_schema_str, from_dict=dict_to_ride)
 
         # Consumer Configuration
-        consumer_props = {'bootstrap.servers': props['bootstrap.servers'],
-                          'group.id': 'taxi.rides.kafka.avro',
-                          'auto.offset.reset': "earliest"}
+        consumer_props = props['cluster_props']
+        consumer_props['group.id'] = 'taxi.rides.kafka.avro'
+        consumer_props['auto.offset.reset'] = 'earliest'
         self.consumer = Consumer(consumer_props)
 
     def consume_from_kafka(self, topics: List[str]):

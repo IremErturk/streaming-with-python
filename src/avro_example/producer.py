@@ -17,14 +17,13 @@ class RideAvroProducer:
     def __init__(self, props: Dict):
         # Schemas & Schema Registry Configuration
         value_schema_str = load_schema(props['schema.value'])
-        schema_registry_props = {'url': props['schema_registry.url']}
-        schema_registry_client = SchemaRegistryClient(schema_registry_props)
+        schema_registry_client = SchemaRegistryClient(props["schema_registry_props"])
         # Serializers
         self.key_serializer = IntegerSerializer()
         self.value_serializer = AvroSerializer(schema_registry_client, value_schema_str, ride_to_dict)
 
         # Producer Configuration
-        producer_props = {'bootstrap.servers': props['bootstrap.servers']}
+        producer_props = props['cluster_props']
         self.producer = Producer(producer_props)
 
     def publish(self, topic: str, records: List[Ride]):
